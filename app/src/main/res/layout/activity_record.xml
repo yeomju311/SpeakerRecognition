@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.MainActivity">
+    tools:context=".activity.RecordActivity">
 
     <LinearLayout
         android:orientation="vertical"
@@ -13,17 +13,16 @@
         android:layout_height="match_parent">
 
         <Button
-            android:id="@+id/btnEnrollment"
-            android:text="ENROLLMENT"
+            android:id="@+id/btnRecord"
+            android:text="RECORD"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <Button
-            android:id="@+id/btnIdentification"
-            android:text="IDENTIFICATION"
+        <TextView
+            android:id="@+id/txtRecordLabel"
+            android:text="Recording State..."
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-
 
     </LinearLayout>
 
