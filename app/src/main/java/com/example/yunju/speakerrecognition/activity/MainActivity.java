@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 
 import com.example.yunju.speakerrecognition.R;
+import com.example.yunju.speakerrecognition.application.ApplicationController;
+import com.example.yunju.speakerrecognition.network.NetworkService;
 
 public class MainActivity extends AppCompatActivity {
 
