@@ -45,8 +45,9 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
 
     implementation 'com.google.code.gson:gson:2.6.2' // setLenient()를 설정해 주기 위해서.
-    //implementation 'com.squareup.okhttp3:logging-interceptor:3.3.1' // okhttp의 로그를 보기 위함.
-    //implementation 'com.squareup.okhttp3:okhttp:3.2.0'
     implementation 'com.android.support:multidex:1.0.0'
+
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.3.1' // okhttp의 로그를 보기 위함.
+    implementation 'com.squareup.okhttp3:okhttp:3.2.0'
 
 }
