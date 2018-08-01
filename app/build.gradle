@@ -29,6 +29,12 @@ android {
     */
 }
 
+repositories {
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -38,7 +44,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     // add library
-    //implementation 'com.microsoft.cognitive:speakerrecognition:1.1.0'
+    //compile 'com.microsoft.cognitive:speakerrecognition:1.1.0'
 
     // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.1.0'
@@ -49,5 +55,9 @@ dependencies {
 
     implementation 'com.squareup.okhttp3:logging-interceptor:3.3.1' // okhttp의 로그를 보기 위함.
     implementation 'com.squareup.okhttp3:okhttp:3.2.0'
+
+    implementation 'com.github.adrielcafe:AndroidAudioRecorder:0.3.0'
+    implementation 'commons-io:commons-io:2.4'
+
 
 }

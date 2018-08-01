@@ -1,43 +1,60 @@
 package com.example.yunju.speakerrecognition.activity;
 
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.yunju.speakerrecognition.EnrollmentResponse;
 import com.example.yunju.speakerrecognition.IdProfileData;
 import com.example.yunju.speakerrecognition.IdentificationProfile;
+import com.example.yunju.speakerrecognition.network.NetworkCall;
 import com.example.yunju.speakerrecognition.R;
 import com.example.yunju.speakerrecognition.application.ApplicationController;
 import com.example.yunju.speakerrecognition.application.WavAudioRecorder;
 import com.example.yunju.speakerrecognition.network.NetworkService;
 import com.google.gson.Gson;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 
+import cafe.adriel.androidaudiorecorder.AndroidAudioRecorder;
+import cafe.adriel.androidaudiorecorder.model.AudioChannel;
+import cafe.adriel.androidaudiorecorder.model.AudioSampleRate;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okhttp3.internal.framed.ErrorCode;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class RecordActivity extends AppCompatActivity {
+
+    //public static final MediaType WAV = MediaType.parse("audio/wav");
 
     NetworkService service;
 
     String speakerId;
 
-    private Button btnRecord, btnProfile;
+    private Button btnRecord, btnProfile, btnEnroll;
     private TextView txtRecordLabel, txtStatus;
 
     private WavAudioRecorder mRecorder;
     private static final String mRcordFilePath = Environment.getExternalStorageDirectory() + "/testwave.wav";
+
+    private int requestCode = 0;
+    private boolean audioRecorded = false;
+    private byte[] bytes;
+    private String mostRecentOp;
+    private int color ;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +68,7 @@ public class RecordActivity extends AppCompatActivity {
         txtStatus = (TextView)findViewById(R.id.txtStatus);
         btnRecord = (Button)findViewById(R.id.btnRecord);
         txtRecordLabel = (TextView)findViewById(R.id.txtRecordLabel);
+        btnEnroll = (Button)findViewById(R.id.btnEnroll);
 
         mRecorder = WavAudioRecorder.getInstanse();
         mRecorder.setOutputFile(mRcordFilePath);
@@ -101,30 +119,53 @@ public class RecordActivity extends AppCompatActivity {
             }
         });
 
-        //service.profileId("identificationProfiles/"+speakerId+"/enroll");
+
+
+        btnRecord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                color = getResources().getColor(R.color.colorPrimaryDark);
+                AndroidAudioRecorder.with(RecordActivity.this)
+                        .setFilePath(mRcordFilePath)
+                        .setColor(color)
+                        .setRequestCode(requestCode)
+                        .setChannel(AudioChannel.MONO)
+                        .setSampleRate(AudioSampleRate.HZ_16000)
+                        .record();
+                audioRecorded = true;
+            }
+        });
+
+        btnEnroll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    bytes = FileUtils.readFileToByteArray(new File(mRcordFilePath));
+                } catch (Exception e){
+                    Log.e("yunju-enrollment", "Failed reading file : "+ e.toString());
+                }
+                RequestBody requestBody = RequestBody.create(MediaType.parse("application/octet-stream"), bytes);
+                Call<ResponseBody> call = service.enroll(speakerId, true, requestBody);
+                try{
+                    retrofit2.Response<ResponseBody> r= new NetworkCall().execute(call).get();
+                    Log.e("TEST", "CODE:" + String.valueOf(r.code()));
+                    if(r.code()!=202){
+                        Toast.makeText(getBaseContext(), r.errorBody().string(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getBaseContext(), "You are enrolled.", Toast.LENGTH_SHORT).show();
+                        mostRecentOp = r.headers().get("Operation-Location").split("/")[r.headers().get("Operation-Location").split("/").length-1];
+                        Toast.makeText(getBaseContext(), mostRecentOp, Toast.LENGTH_SHORT).show();
+                    }
+                } catch(Exception e){
+                    Log.e("TEST", "Failed to execute request : " + e.toString());
+                }
+                audioRecorded = false;
+            }
+        });
+
+
 
         /*
-        File audioFile = new File(fileDirectory + "my_voice.wav");
-RequestBody requestAudioFile = RequestBody.create(MediaType.parse("application/octet-stream"), audioFile);
-Call<EnrollmentResponse> call = apiService.createEnrollment(PROFILE_ID_TEST,"audio/wav; samplerate=1600",API_KEY,requestAudioFile);
-call.enqueue(new Callback<EnrollmentResponse>() {
-    @Override
-    public void onResponse(Call<EnrollmentResponse> call, Response<EnrollmentResponse> response) {
-        Log.d(TAG,"Upload success");
-        RequestError error = ErrorUtils.parseError(response);
-        Log.d("error message", error.toString());
-        Log.d(TAG,"Response: " + response.body().toString());
-    }
-
-    @Override
-    public void onFailure(Call<EnrollmentResponse> call, Throwable t) {
-        Log.d(TAG,"Upload error: " + t.getMessage());
-    }
-});
-         */
-
-
-
         btnRecord.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -140,17 +181,18 @@ call.enqueue(new Callback<EnrollmentResponse>() {
                     mRecorder.reset();
                     //txtRecordLabel.setText("Recording Stopped...");
 
-                    File audioFile = new File(mRcordFilePath);
-                    RequestBody requestAudioFile = RequestBody.create(MediaType.parse("multipart/form-data"), audioFile);
-                    Call<EnrollmentResponse> call = service.createEnrollment("identificationProfiles/"+speakerId+"/enroll", requestAudioFile);
-                    call.enqueue(new Callback<EnrollmentResponse>() {
+                    File file = new File(mRcordFilePath);
+                    RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+                    MultipartBody.Part body =
+                            MultipartBody.Part.createFormData("uploaded_file", file.getName(), requestFile);
+                    Call<ResponseBody> response = service.createEnrollment(speakerId, body);
+                    response.enqueue(new Callback<ResponseBody>() {
                         @Override
-                        public void onResponse(Call<EnrollmentResponse> call, Response<EnrollmentResponse> response) {
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if(response.isSuccessful()) {
-
+                                txtRecordLabel.setText("enrollment success");
                             }
                             else {
-
                                 try {
                                     result[0] = response.errorBody().string();
                                     Gson gson = new Gson();
@@ -163,13 +205,19 @@ call.enqueue(new Callback<EnrollmentResponse>() {
                         }
 
                         @Override
-                        public void onFailure(Call<EnrollmentResponse> call, Throwable t) {
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            txtRecordLabel.setText("enrollment fail");
                             Log.i("yunju-enrollment", t.toString());
-                            Log.i("yunju-enrollment", t.getMessage());                        }
+                            Log.i("yunju-enrollment", t.getMessage());
+                        }
                     });
                 }
                 return false;
             }
         });
+        */
+
     }
+
+
 }

@@ -25,14 +25,25 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/btnRecord"
-            android:text="RECORD"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        android:id="@+id/btnRecord"
+        android:text="RECORD"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/txtRecordLabel"
             android:text="Recording State..."
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnEnroll"
+            android:text="ENROLLMENT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text="꺄악"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

@@ -122,6 +122,7 @@ public class WavAudioRecorder {
 
     public WavAudioRecorder(int audioSource, int sampleRate, int channelConfig, int audioFormat) {
         try {
+
             if (audioFormat == AudioFormat.ENCODING_PCM_16BIT) {
                 mBitsPersample = 16;
             } else {
@@ -133,6 +134,12 @@ public class WavAudioRecorder {
             } else {
                 nChannels = 2;
             }
+
+
+            /*
+            mBitsPersample = 16;
+            nChannels = 1;
+            */
 
             mAudioSource = audioSource;
             sRate = sampleRate;
